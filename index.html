@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Formulir Pendataan Makanan Kesukaan</title>
+    <style>
+      .response-container {
+        margin-top: 20px;
+        border-top: 2px solid #ccc;
+        padding-top: 10px;
+      }
+      .response-list {
+        list-style-type: none;
+        padding: 0;
+      }
+      .response-item {
+        margin-bottom: 10px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+      .summary {
+        margin-top: 20px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+      }
+    </style>
+    <script>
+      // Himpunan makanan yang tersedia
+      const allFoodSet = new Set([
+        "Ayam Bakar",
+        "Ketoprak",
+        "Gado-gado",
+        "Nasi Goreng",
+        "Mie Goreng",
+      ]);
+
+      // Himpunan global untuk semua makanan yang dipilih
+      const globalFoodSet = new Set(); // Gabungan semua makanan
+      const userSelections = []; // Array menyimpan setiap pilihan pengguna sebagai himpunan
+
+      // Fungsi untuk validasi input
+      function validateForm(name, email, selectedFood) {
+        if (!name || !email) {
+          alert("Harap isi nama dan email Anda.");
+          return false;
+        }
+
+        if (selectedFood.size === 0) {
+          alert("Harap pilih setidaknya satu makanan.");
+          return false;
+        }
+
+        return true;
+      }
+
+      // Fungsi untuk menghitung operasi himpunan
+      function calculateSetOperations() {
+        // Irisan: Makanan yang dipilih oleh semua pengguna
+        let intersectionSet = new Set([...allFoodSet]);
+        userSelections.forEach((selection) => {
+          intersectionSet = new Set(
+            [...intersectionSet].filter((item) => selection.has(item))
+          );
+        });
+
+        // Selisih: Makanan yang tersedia tetapi belum dipilih oleh pengguna mana pun
+        const differenceSet = new Set(
+          [...allFoodSet].filter((item) => !globalFoodSet.has(item))
+        );
+
+        // Menampilkan hasil operasi himpunan
+        const summaryContainer = document.getElementById("globalFoodSummary");
+        summaryContainer.innerHTML = `
+          <strong>Gabungan (Semua makanan yang pernah dipilih):</strong> ${
+            Array.from(globalFoodSet).join(", ") || "(Kosong)"
+          } <br>
+          <strong>Irisan (Makanan yang dipilih semua pengguna):</strong> ${
+            Array.from(intersectionSet).join(", ") || "(Kosong)"
+          } <br>
+          <strong>Selisih (Makanan yang belum dipilih):</strong> ${
+            Array.from(differenceSet).join(", ") || "(Kosong)"
+          }
+        `;
+      }
+
+      // Fungsi untuk menangani pengumpulan pilihan makanan kesukaan
+      function submitForm() {
+        // Mengambil input nama dan email
+        const name = document.getElementById("name").value.trim();
+        const email = document.getElementById("email").value.trim();
+
+        // Menggunakan himpunan untuk menyimpan pilihan makanan
+        const selectedFood = new Set();
+        const food = document.querySelectorAll('input[name="food"]:checked');
+        food.forEach((item) => selectedFood.add(item.value));
+
+        // Validasi input
+        if (!validateForm(name, email, selectedFood)) {
+          return;
+        }
+
+        // Menambahkan pilihan pengguna ke himpunan global
+        selectedFood.forEach((item) => globalFoodSet.add(item));
+
+        // Menyimpan pilihan pengguna ke dalam array
+        userSelections.push(selectedFood);
+
+        // Menampilkan hasil pilihan pengguna
+        const responseContainer = document.getElementById("responses");
+        const newResponse = document.createElement("li");
+        newResponse.className = "response-item";
+        newResponse.innerHTML = `
+          <strong>Nama:</strong> ${name} <br>
+          <strong>Email:</strong> ${email} <br>
+          <strong>Makanan yang dipilih:</strong> ${Array.from(
+            selectedFood
+          ).join(", ")}
+        `;
+        responseContainer.appendChild(newResponse);
+
+        // Menghitung dan menampilkan hasil operasi himpunan
+        calculateSetOperations();
+
+        // Membersihkan formulir setelah pengisian
+        document.getElementById("foodForm").reset();
+      }
+    </script>
+  </head>
+  <body>
+    <h2>Formulir Pilihan Makanan Kesukaan</h2>
+
+    <form id="foodForm">
+      <label for="name">Nama: </label>
+      <input type="text" id="name" name="name" required /><br /><br />
+
+      <label for="email">Email: </label>
+      <input type="email" id="email" name="email" required /><br /><br />
+
+      <h3>Daftar Makanan:</h3>
+      <label>
+        <input type="checkbox" name="food" value="Ayam Bakar" /> Ayam Bakar
+      </label>
+      <br />
+      <label>
+        <input type="checkbox" name="food" value="Ketoprak" /> Ketoprak
+      </label>
+      <br />
+      <label>
+        <input type="checkbox" name="food" value="Gado-gado" /> Gado-gado
+      </label>
+      <br />
+      <label>
+        <input type="checkbox" name="food" value="Nasi Goreng" /> Nasi Goreng
+      </label>
+      <br />
+      <label>
+        <input type="checkbox" name="food" value="Mie Goreng" /> Mie Goreng
+      </label>
+      <br /><br />
+
+      <button type="button" onclick="submitForm()">Kirim</button>
+    </form>
+
+    <div class="response-container">
+      <h3>Jawaban Pengguna:</h3>
+      <ul id="responses" class="response-list"></ul>
+
+      <div class="summary" id="globalFoodSummary">
+        <strong>Gabungan:</strong> (Kosong) <br />
+        <strong>Irisan:</strong> (Kosong) <br />
+        <strong>Selisih:</strong> (Kosong)
+      </div>
+    </div>
+  </body>
+</html>
